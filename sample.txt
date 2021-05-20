@@ -1,0 +1,24 @@
+cb.PipelineProject(self, id,
+                            build_spec=cb.BuildSpec.from_object(
+                                dict(
+                                    version="0.2",
+                                    phases=dict(
+                                        install=dict(
+                                            commands=[
+                                                "echo $STAGE",
+                                                "npm install aws-cdk",
+                                                "npm update",
+                                                "pip install -r requirements.txt"
+                                            ]),
+                                        build=dict(commands=[
+                                            f"npx cdk deploy {module_name}-{stage}"
+                                        ])
+                                    ),
+                                    artifacts={
+                                        "files": ["**/*"],
+                                        "enable-symlinks": "yes"
+                                    },
+                                    environment=dict(buildImage=cb.LinuxBuildImage.STANDARD_2_0))
+                            ),
+                            project_name= f'{module_name}-{stage}-build-project'
+        )

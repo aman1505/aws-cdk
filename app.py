@@ -9,26 +9,33 @@ from aws_cdk import core as cdk
 # being updated to use `cdk`.  You may delete this import if you don't need it.
 from aws_cdk import core
 
-from cdk_practice.cdk_practice_stack import CdkPracticeStack
+from stacks.cdk_s3_stack import CdkS3Stack
+from stacks.cdk_lambda_stack import CdkLambdaStack
+from stacks.cdk_pipeline_stack import CdkPipelineStack
 
 
 app = core.App()
-CdkPracticeStack(app, "CdkPracticeStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
+# CdkS3tack(app, "CdkPracticeStack",
+#     # If you don't specify 'env', this stack will be environment-agnostic.
+#     # Account/Region-dependent features and context lookups will not work,
+#     # but a single synthesized template can be deployed anywhere.
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+#     # Uncomment the next line to specialize this stack for the AWS Account
+#     # and Region that are implied by the current CLI configuration.
 
-    #env=core.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+#     #env=core.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
+#     # Uncomment the next line if you know exactly what Account and Region you
+#     # want to deploy the stack to. */
 
-    #env=core.Environment(account='123456789012', region='us-east-1'),
+#     env=core.Environment(account='278887234345', region='ap-south-1'),
 
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+#     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
+#     )
+
+
+CdkS3Stack(app, "CdkS3Stack",env=core.Environment(account='278887234345', region='ap-south-1'),)
+CdkLambdaStack(app, "CdkLambdaStack", env=core.Environment(account='278887234345', region='ap-south-1'),)
+CdkPipelineStack(app,"CdkPipelineStack", env=core.Environment(account='278887234345', region='ap-south-1'),)
 
 app.synth()

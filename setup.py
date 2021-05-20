@@ -6,7 +6,7 @@ with open("README.md") as fp:
 
 
 setuptools.setup(
-    name="cdk_practice",
+    name="stacks",
     version="0.0.1",
 
     description="An empty CDK Python app",
@@ -15,11 +15,17 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "cdk_practice"},
-    packages=setuptools.find_packages(where="cdk_practice"),
+    package_dir={"": "stacks"},
+    packages=setuptools.find_packages(where="stacks"),
 
     install_requires=[
         "aws-cdk.core==1.105.0",
+        "aws_cdk.aws_s3",
+        "aws_cdk.aws_lambda",
+        "aws_cdk.aws_codebuild",
+        "aws_cdk.aws_codepipeline",
+        "aws_cdk.aws_codepipeline_actions",
+        "aws-cdk.aws-secretsmanager"
     ],
 
     python_requires=">=3.6",
