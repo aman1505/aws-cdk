@@ -22,9 +22,9 @@ class CdkPipelineStack(cdk.Stack):
         # The code that defines your stack goes here
 
         #Creating an empty pipeline 
-        pipeline = codepipeline.Pipeline(self, "MyCDKPipeline",
-            pipeline_name="MyCDKPipeline"
-        )
+        # pipeline = codepipeline.Pipeline(self, "MyCDKPipeline",
+        #     pipeline_name="MyCDKPipeline"
+        # )
         
         #Creating a source stage with GitHub as source 
         source_output = codepipeline.Artifact()
@@ -38,10 +38,10 @@ class CdkPipelineStack(cdk.Stack):
         )
 
         #Adding Source stage created in previous 
-        pipeline.add_stage(
-            stage_name="Source",
-            actions=[source_action]
-        )
+        # pipeline.add_stage(
+        #     stage_name="Source",
+        #     actions=[source_action]
+        # )
 
         module_list = ["CdkPipelineStack", "CdkS3Stack"]
         environemt = "dev"
@@ -50,7 +50,7 @@ class CdkPipelineStack(cdk.Stack):
         # Iterating over the module list and creating code build project 
         for module in module_list: 
             project_name = module+"-"+environemt
-            project = BuildProjects.getProjectDefination(module, environemt, project_name)
+            project = BuildProjects.getProjectDefination(self, module, environemt, project_name)
             project.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
             action = codepipelineactions.CodeBuildAction(
             action_name="CodeBuild"+module,
@@ -61,7 +61,30 @@ class CdkPipelineStack(cdk.Stack):
             action_list.append(action)
 
         #Creating Build stage and adding build_action_s3 in it 
-        pipeline.add_stage(
-            stage_name="Build",
-            actions=action_list
+        # pipeline.add_stage(
+        #     stage_name="Build",
+        #     actions=action_list
+        # )
+        # codepipeline.Pipeline(self, "MyCDKPipeline",
+        #     pipeline_name="MyCDKPipeline",
+        #     stages=[{
+        #     "stage_name": "Source",
+        #     "actions": [source_action]
+        #     },
+        #     {
+        #     "stage_name": "Build",
+        #     "actions": action_list
+        #     }   
+        #    ]
+        # )
+
+        codepipeline.Pipeline(self, "Pipeline",
+            stages=[
+                codepipeline.StageProps(stage_name="Source",
+                    actions=[source_action]),
+                codepipeline.StageProps(stage_name="Build",
+                    actions=action_list
+                )
+            ], pipeline_name= "MyCDKPipeline"
         )
+        
