@@ -12,7 +12,7 @@ from aws_cdk import(
 # with examples from the CDK Developer's Guide, which are in the process of
 # being updated to use `cdk`.  You may delete this import if you don't need it.
 from aws_cdk import core
-
+from utils.buildProjects import BuildProjects 
 
 class CdkPipelineStack(cdk.Stack):
 
@@ -25,7 +25,7 @@ class CdkPipelineStack(cdk.Stack):
         pipeline = codepipeline.Pipeline(self, "MyCDKPipeline",
             pipeline_name="MyCDKPipeline"
         )
-
+        
         #Creating a source stage with GitHub as source 
         source_output = codepipeline.Artifact()
         source_action = codepipelineactions.GitHubSourceAction(
@@ -43,82 +43,25 @@ class CdkPipelineStack(cdk.Stack):
             actions=[source_action]
         )
 
-        # Creating BuildSpec file for Stage Build and action CodeBuildS3 calling it as project for CdkPracticeStack
-        stack_name = "CdkS3Stack"
-        
-        project_s3Stack = codebuild.PipelineProject(self, "MyProjectS3",
-                build_spec=codebuild.BuildSpec.from_object({
-                    "version":"0.2",
-                    "phases":{
-                        "install": {
-                            "commands": [
-                                "echo 'starting installation'",
-                                "npm install aws-cdk",
-                                "npm update",
-                                "pip install -r requirements.txt"
-                            ]
-                        },
-                        "build":{
-                            "commands": [
-                                "echo 'starting build stage'",
-                                f"npx cdk deploy {stack_name} --require-approval never"
-                            ]
-                        }
-                    }
-                }
-                ),
-                environment={
-                    "build_image": codebuild.LinuxBuildImage.STANDARD_2_0
-                }
-            )
-        project_s3Stack.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
-        
-        # Creating BuildSpec file for Stage Build and action CodeBuildLambda calling it as project for CdkPracticeStack
-        stack_name = "CdkLambdaStack"
-        project_lambdaStack = codebuild.PipelineProject(self, "MyProjectLambda",
-                build_spec=codebuild.BuildSpec.from_object({
-                    "version":"0.2",
-                    "phases":{
-                        "install": {
-                            "commands": [
-                                "echo 'starting installation'",
-                                "npm install aws-cdk",
-                                "npm update",
-                                "pip install -r requirements.txt"
-                            ]
-                        },
-                        "build":{
-                            "commands": [
-                                "echo 'starting build stage'",
-                                f"npx cdk deploy {stack_name} "
-                            ]
-                        }
-                    }
-                }
-                ),
-                environment={
-                    "build_image": codebuild.LinuxBuildImage.STANDARD_2_0
-                }
-            )
-        project_lambdaStack.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
-        #Creating action codeBuildS3 for stage Build 
-        build_action_s3 = codepipelineactions.CodeBuildAction(
-            action_name="CodeBuildS3",
-            project=project_s3Stack,
-            input=source_output, # The build action must use the CodeCommitSourceAction output as input.
-            outputs=[codepipeline.Artifact()]
-        )    
+        module_list = ["CdkPipelineStack", "CdkS3Stack"]
+        environemt = "dev"
+        action_list=[]
 
-        #Creation action codeBuildLambda for stage Build
-        build_action_lambda = codepipelineactions.CodeBuildAction(
-            action_name="CodeBuildLambda",
-            project=project_lambdaStack,
+        # Iterating over the module list and creating code build project 
+        for module in module_list: 
+            project_name = module+"-"+environemt
+            project = BuildProjects.getProjectDefination(module, environemt, project_name)
+            project.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
+            action = codepipelineactions.CodeBuildAction(
+            action_name="CodeBuild"+module,
+            project=project,
             input=source_output, # The build action must use the CodeCommitSourceAction output as input.
             outputs=[codepipeline.Artifact()]
-        )
+            )
+            action_list.append(action)
 
         #Creating Build stage and adding build_action_s3 in it 
         pipeline.add_stage(
             stage_name="Build",
-            actions=[build_action_s3, build_action_lambda]
+            actions=action_list
         )

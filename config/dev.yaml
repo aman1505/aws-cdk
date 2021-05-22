@@ -1,0 +1,6 @@
+stacks:
+  - s3: "bukcet"
+  - lambda: function
+    abc: "xyz"
+modules:
+  - 
