@@ -3,6 +3,7 @@ from aws_cdk import(
     aws_codepipeline as codepipeline,
     aws_codepipeline_actions as codepipelineactions,
     aws_codebuild as codebuild,
+    aws_iam as iam,
     core as cdk
     )
 
