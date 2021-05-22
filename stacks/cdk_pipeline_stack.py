@@ -90,7 +90,7 @@ class CdkPipelineStack(cdk.Stack):
                         "build":{
                             "commands": [
                                 "echo 'starting build stage'",
-                                f"npx cdk deploy {stack_name} --require-approval never"
+                                f"npx cdk deploy {stack_name} "
                             ]
                         }
                     }
