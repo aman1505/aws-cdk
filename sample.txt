@@ -1,24 +1,102 @@
-cb.PipelineProject(self, id,
-                            build_spec=cb.BuildSpec.from_object(
-                                dict(
-                                    version="0.2",
-                                    phases=dict(
-                                        install=dict(
-                                            commands=[
-                                                "echo $STAGE",
-                                                "npm install aws-cdk",
-                                                "npm update",
-                                                "pip install -r requirements.txt"
-                                            ]),
-                                        build=dict(commands=[
-                                            f"npx cdk deploy {module_name}-{stage}"
-                                        ])
-                                    ),
-                                    artifacts={
-                                        "files": ["**/*"],
-                                        "enable-symlinks": "yes"
-                                    },
-                                    environment=dict(buildImage=cb.LinuxBuildImage.STANDARD_2_0))
-                            ),
-                            project_name= f'{module_name}-{stage}-build-project'
-        )
+IAM Statement Changes
+┌───┬────────────────────────────────────────┬────────┬────────────────────────────────────────┬────────────────────────────────────────┬───────────┐
+│   │ Resource                               │ Effect │ Action                                 │ Principal                              │ Condition │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyCDKPipeline/ArtifactsBucket.Arn}   │ Allow  │ s3:Abort*                              │ AWS:${MyCDKPipeline/Role}              │           │
+│   │ ${MyCDKPipeline/ArtifactsBucket.Arn}/* │        │ s3:DeleteObject*                       │                                        │           │
+│   │                                        │        │ s3:GetBucket*                          │                                        │           │
+│   │                                        │        │ s3:GetObject*                          │                                        │           │
+│   │                                        │        │ s3:List*                               │                                        │           │
+│   │                                        │        │ s3:PutObject                           │                                        │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucket.Arn}   │ Allow  │ s3:Abort*                              │ AWS:${MyProjectS3/Role}                │           │
+│   │ ${MyCDKPipeline/ArtifactsBucket.Arn}/* │        │ s3:DeleteObject*                       │                                        │           │
+│   │                                        │        │ s3:GetBucket*                          │                                        │           │
+│   │                                        │        │ s3:GetObject*                          │                                        │           │
+│   │                                        │        │ s3:List*                               │                                        │           │
+│   │                                        │        │ s3:PutObject                           │                                        │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucket.Arn}   │ Allow  │ s3:Abort*                              │ AWS:${MyProjectLambda/Role}            │           │
+│   │ ${MyCDKPipeline/ArtifactsBucket.Arn}/* │        │ s3:DeleteObject*                       │                                        │           │
+│   │                                        │        │ s3:GetBucket*                          │                                        │           │
+│   │                                        │        │ s3:GetObject*                          │                                        │           │
+│   │                                        │        │ s3:List*                               │                                        │           │
+│   │                                        │        │ s3:PutObject                           │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyCDKPipeline/ArtifactsBucketEncrypt │ Allow  │ kms:*                                  │ AWS:arn:${AWS::Partition}:iam::2788872 │           │
+│   │ ionKey.Arn}                            │        │                                        │ 34345:root                             │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucketEncrypt │ Allow  │ kms:Decrypt                            │ AWS:${MyCDKPipeline/Role}              │           │
+│   │ ionKey.Arn}                            │        │ kms:DescribeKey                        │                                        │           │
+│   │                                        │        │ kms:Encrypt                            │                                        │           │
+│   │                                        │        │ kms:GenerateDataKey*                   │                                        │           │
+│   │                                        │        │ kms:ReEncrypt*                         │                                        │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucketEncrypt │ Allow  │ kms:Decrypt                            │ AWS:${MyProjectS3/Role}                │           │
+│   │ ionKey.Arn}                            │        │ kms:DescribeKey                        │                                        │           │
+│   │                                        │        │ kms:Encrypt                            │                                        │           │
+│   │                                        │        │ kms:GenerateDataKey*                   │                                        │           │
+│   │                                        │        │ kms:ReEncrypt*                         │                                        │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucketEncrypt │ Allow  │ kms:Decrypt                            │ AWS:${MyProjectS3/Role}                │           │
+│   │ ionKey.Arn}                            │        │ kms:Encrypt                            │                                        │           │
+│   │                                        │        │ kms:GenerateDataKey*                   │                                        │           │
+│   │                                        │        │ kms:ReEncrypt*                         │                                        │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucketEncrypt │ Allow  │ kms:Decrypt                            │ AWS:${MyProjectLambda/Role}            │           │
+│   │ ionKey.Arn}                            │        │ kms:DescribeKey                        │                                        │           │
+│   │                                        │        │ kms:Encrypt                            │                                        │           │
+│   │                                        │        │ kms:GenerateDataKey*                   │                                        │           │
+│   │                                        │        │ kms:ReEncrypt*                         │                                        │           │
+│ + │ ${MyCDKPipeline/ArtifactsBucketEncrypt │ Allow  │ kms:Decrypt                            │ AWS:${MyProjectLambda/Role}            │           │
+│   │ ionKey.Arn}                            │        │ kms:Encrypt                            │                                        │           │
+│   │                                        │        │ kms:GenerateDataKey*                   │                                        │           │
+│   │                                        │        │ kms:ReEncrypt*                         │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyCDKPipeline/Build/CodeBuildLambda/ │ Allow  │ sts:AssumeRole                         │ AWS:arn:${AWS::Partition}:iam::2788872 │           │
+│   │ CodePipelineActionRole.Arn}            │        │                                        │ 34345:root                             │           │
+│ + │ ${MyCDKPipeline/Build/CodeBuildLambda/ │ Allow  │ sts:AssumeRole                         │ AWS:${MyCDKPipeline/Role}              │           │
+│   │ CodePipelineActionRole.Arn}            │        │                                        │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyCDKPipeline/Build/CodeBuildS3/Code │ Allow  │ sts:AssumeRole                         │ AWS:arn:${AWS::Partition}:iam::2788872 │           │
+│   │ PipelineActionRole.Arn}                │        │                                        │ 34345:root                             │           │
+│ + │ ${MyCDKPipeline/Build/CodeBuildS3/Code │ Allow  │ sts:AssumeRole                         │ AWS:${MyCDKPipeline/Role}              │           │
+│   │ PipelineActionRole.Arn}                │        │                                        │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyCDKPipeline/Role.Arn}              │ Allow  │ sts:AssumeRole                         │ Service:codepipeline.amazonaws.com     │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyProjectLambda.Arn}                 │ Allow  │ codebuild:BatchGetBuilds               │ AWS:${MyCDKPipeline/Build/CodeBuildLam │           │
+│   │                                        │        │ codebuild:StartBuild                   │ bda/CodePipelineActionRole}            │           │
+│   │                                        │        │ codebuild:StopBuild                    │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyProjectLambda/Role.Arn}            │ Allow  │ sts:AssumeRole                         │ Service:codebuild.amazonaws.com        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyProjectS3.Arn}                     │ Allow  │ codebuild:BatchGetBuilds               │ AWS:${MyCDKPipeline/Build/CodeBuildS3/ │           │
+│   │                                        │        │ codebuild:StartBuild                   │ CodePipelineActionRole}                │           │
+│   │                                        │        │ codebuild:StopBuild                    │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ ${MyProjectS3/Role.Arn}                │ Allow  │ sts:AssumeRole                         │ Service:codebuild.amazonaws.com        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ arn:${AWS::Partition}:codebuild:ap-sou │ Allow  │ codebuild:BatchPutCodeCoverages        │ AWS:${MyProjectLambda/Role}            │           │
+│   │ th-1:278887234345:report-group/${MyPro │        │ codebuild:BatchPutTestCases            │                                        │           │
+│   │ jectLambda5A8CD30D}-*                  │        │ codebuild:CreateReport                 │                                        │           │
+│   │                                        │        │ codebuild:CreateReportGroup            │                                        │           │
+│   │                                        │        │ codebuild:UpdateReport                 │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ arn:${AWS::Partition}:codebuild:ap-sou │ Allow  │ codebuild:BatchPutCodeCoverages        │ AWS:${MyProjectS3/Role}                │           │
+│   │ th-1:278887234345:report-group/${MyPro │        │ codebuild:BatchPutTestCases            │                                        │           │
+│   │ jectS306EC43F2}-*                      │        │ codebuild:CreateReport                 │                                        │           │
+│   │                                        │        │ codebuild:CreateReportGroup            │                                        │           │
+│   │                                        │        │ codebuild:UpdateReport                 │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ arn:${AWS::Partition}:logs:ap-south-1: │ Allow  │ logs:CreateLogGroup                    │ AWS:${MyProjectLambda/Role}            │           │
+│   │ 278887234345:log-group:/aws/codebuild/ │        │ logs:CreateLogStream                   │                                        │           │
+│   │ ${MyProjectLambda5A8CD30D}             │        │ logs:PutLogEvents                      │                                        │           │
+│   │ arn:${AWS::Partition}:logs:ap-south-1: │        │                                        │                                        │           │
+│   │ 278887234345:log-group:/aws/codebuild/ │        │                                        │                                        │           │
+│   │ ${MyProjectLambda5A8CD30D}:*           │        │                                        │                                        │           │
+├───┼────────────────────────────────────────┼────────┼────────────────────────────────────────┼────────────────────────────────────────┼───────────┤
+│ + │ arn:${AWS::Partition}:logs:ap-south-1: │ Allow  │ logs:CreateLogGroup                    │ AWS:${MyProjectS3/Role}                │           │
+│   │ 278887234345:log-group:/aws/codebuild/ │        │ logs:CreateLogStream                   │                                        │           │
+│   │ ${MyProjectS306EC43F2}                 │        │ logs:PutLogEvents                      │                                        │           │
+│   │ arn:${AWS::Partition}:logs:ap-south-1: │        │                                        │                                        │           │
+│   │ 278887234345:log-group:/aws/codebuild/ │        │                                        │                                        │           │
+│   │ ${MyProjectS306EC43F2}:*               │        │                                        │                                        │           │
+└───┴────────────────────────────────────────┴────────┴────────────────────────────────────────┴────────────────────────────────────────┴───────────┘
+(NOTE: There may be security-related changes not in this list. See https://github.com/aws/aws-cdk/issues/1299)
+
+

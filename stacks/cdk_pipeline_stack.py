@@ -45,6 +45,7 @@ class CdkPipelineStack(cdk.Stack):
 
         # Creating BuildSpec file for Stage Build and action CodeBuildS3 calling it as project for CdkPracticeStack
         stack_name = "CdkS3Stack"
+        
         project_s3Stack = codebuild.PipelineProject(self, "MyProjectS3",
                 build_spec=codebuild.BuildSpec.from_object({
                     "version":"0.2",
@@ -60,7 +61,7 @@ class CdkPipelineStack(cdk.Stack):
                         "build":{
                             "commands": [
                                 "echo 'starting build stage'",
-                                f"npx cdk deploy {stack_name}"
+                                f"npx cdk deploy {stack_name} --require-approval never"
                             ]
                         }
                     }
@@ -70,7 +71,8 @@ class CdkPipelineStack(cdk.Stack):
                     "build_image": codebuild.LinuxBuildImage.STANDARD_2_0
                 }
             )
-
+        project_s3Stack.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
+        
         # Creating BuildSpec file for Stage Build and action CodeBuildLambda calling it as project for CdkPracticeStack
         stack_name = "CdkLambdaStack"
         project_lambdaStack = codebuild.PipelineProject(self, "MyProjectLambda",
@@ -88,7 +90,7 @@ class CdkPipelineStack(cdk.Stack):
                         "build":{
                             "commands": [
                                 "echo 'starting build stage'",
-                                f"npx cdk deploy {stack_name}"
+                                f"npx cdk deploy {stack_name} --require-approval never"
                             ]
                         }
                     }
@@ -98,7 +100,7 @@ class CdkPipelineStack(cdk.Stack):
                     "build_image": codebuild.LinuxBuildImage.STANDARD_2_0
                 }
             )
-
+        project_lambdaStack.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
         #Creating action codeBuildS3 for stage Build 
         build_action_s3 = codepipelineactions.CodeBuildAction(
             action_name="CodeBuildS3",
