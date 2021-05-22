@@ -50,7 +50,7 @@ class CdkPipelineStack(cdk.Stack):
                     "phases":{
                         "install": {
                             "commands": [
-                                "echo 'starting installation'"
+                                "echo 'starting installation'",
                                 "npm install aws-cdk",
                                 "npm update",
                                 "pip install -r requirements.txt"
@@ -58,7 +58,7 @@ class CdkPipelineStack(cdk.Stack):
                         },
                         "build":{
                             "commands": [
-                                "echo 'starting build stage'"
+                                "echo 'starting build stage'",
                                 f"npx cdk deploy {stack_name}"
                             ]
                         }
@@ -78,7 +78,7 @@ class CdkPipelineStack(cdk.Stack):
                     "phases":{
                         "install": {
                             "commands": [
-                                "echo 'starting installation'"
+                                "echo 'starting installation'",
                                 "npm install aws-cdk",
                                 "npm update",
                                 "pip install -r requirements.txt"
@@ -86,7 +86,7 @@ class CdkPipelineStack(cdk.Stack):
                         },
                         "build":{
                             "commands": [
-                                "echo 'starting build stage'"
+                                "echo 'starting build stage'",
                                 f"npx cdk deploy {stack_name}"
                             ]
                         }
@@ -119,6 +119,3 @@ class CdkPipelineStack(cdk.Stack):
             stage_name="Build",
             actions=[build_action_s3, build_action_lambda]
         )
-
-
-    
