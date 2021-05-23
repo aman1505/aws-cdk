@@ -13,6 +13,7 @@ from aws_cdk import(
 # being updated to use `cdk`.  You may delete this import if you don't need it.
 from aws_cdk import core
 from utils.buildProjects import BuildProjects 
+import yaml
 
 class CdkPipelineStack(cdk.Stack):
 
@@ -43,20 +44,28 @@ class CdkPipelineStack(cdk.Stack):
         #     actions=[source_action]
         # )
 
-        module_list = ["CdkPipelineStack", "CdkS3Stack"]
         environemt = "dev"
         action_list=[]
 
+        with open(f"config/dev.yaml", 'r') as stream:
+            try:
+                config = yaml.safe_load(stream)
+                module_list = config["modules"]
+            except yaml.YAMLError as exc:
+                print(exc)
+
         # Iterating over the module list and creating code build project 
         for module in module_list: 
-            project_name = module+"-"+environemt
-            project = BuildProjects.getProjectDefination(self, module, environemt, project_name)
+            module_name = module["stack_name"]
+            project_name = module_name+"-"+environemt
+            project = BuildProjects.getProjectDefination(self, module_name, environemt, project_name)
             project.role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name('AdministratorAccess'))
             action = codepipelineactions.CodeBuildAction(
-            action_name="CodeBuild"+module,
+            action_name="CodeBuild"+module_name,
             project=project,
             input=source_output, # The build action must use the CodeCommitSourceAction output as input.
-            outputs=[codepipeline.Artifact()]
+            outputs=[codepipeline.Artifact()],
+            run_order=module["run_order"]
             )
             action_list.append(action)
 
