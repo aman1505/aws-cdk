@@ -35,7 +35,7 @@ class BuildProjects(cdk.Stack):
                         "build":{
                             "commands": [
                                 "echo 'starting build stage'",
-                                f"npx cdk deploy {stack_name}-{environemt}"
+                                f"npx cdk deploy {stack_name}"
                             ]
                         }
                     }
