@@ -3,3 +3,5 @@ modules:
     run_order: 1
   - stack_name: "CdkS3Stack"
     run_order: 2
+  - stack_name: "CdkLambdaStack"
+    run_order: 2
